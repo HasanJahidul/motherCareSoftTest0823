@@ -1,0 +1,102 @@
+import { BadRequestException } from "@nestjs/common";
+import * as csvParser from "csv-parser";
+import { once } from "events";
+import { Readable } from "stream";
+import { z } from "zod";
+
+async function addCsvNfts(
+    file: { buffer: Iterable<any> | AsyncIterable<any>; mimetype: string },
+    body: { replace: string; game_id: string },
+  ) {
+    if (!file) throw new BadRequestException("No file provided");
+    if (file.mimetype !== "text/csv")
+      throw new BadRequestException("File must be a CSV");
+    const { game_id, replace } = z
+      .object({
+        replace: z.string().optional(),
+        game_id: z.string().min(1),
+      })
+      .parse(body);
+    const results: any[] = [];
+    try {
+      const stream = Readable.from(file.buffer);
+      stream.pipe(csvParser()).on("data", (data) => results.push(data));
+      await once(stream, "end");
+    } catch (error) {
+      throw new BadRequestException("Error parsing CSV");
+    }
+    if (results.length === 0)
+      throw new BadRequestException("No data found in CSV");
+    const data = z
+      .object({
+        name: z.string(),
+        description: z.string(),
+        image: z.string(),
+        color: z.enum([COLOR.BLACK, ...Object.keys(COLOR)]),
+        job: z.enum([NFT_JOB.BRIDGE, ...Object.keys(NFT_JOB)]),
+        level: z.coerce.number().default(1),
+        r: z.coerce.number().default(1),
+        b: z.coerce.number().default(1),
+        k: z.coerce.number().default(1),
+        l: z.coerce.number().default(1),
+      })
+      .passthrough()
+      .array()
+      .parse(results);
+
+    const res = await this.prisma.$transaction(async (tx) => {
+      if (replace) {
+        await tx.nft.deleteMany({ where: { gameId: game_id } });
+      }
+      await tx.nft.createMany({
+        data: data.map(
+          ({
+            description,
+            image,
+            name,
+            color,
+            job,
+            level,
+            b,
+            l,
+            k,
+            r,
+            ...meta
+          }) => ({
+            gameId: game_id,
+            color: COLOR[color],
+            level: level,
+            abilityR: r,
+            abilityB: b,
+            abilityK: k,
+            abilityL: l,
+            name,
+            description,
+            image,
+            job: NFT_JOB[job],
+            metadata: Object.keys(meta).reduce(
+              (prev, curr) => [
+                ...prev,
+                {
+                  type: curr,
+                  value: meta[curr] as any,
+                },
+              ],
+              [],
+            ),
+          }),
+        ),
+      });
+
+      return "added";
+    });
+    (async () => {
+      await new Promise((resolve) => setTimeout(resolve, 4000));
+      this.randomizeFixTokenId(
+        { body: { gameId: game_id }, param: {}, query: {} },
+        {} as any,
+      );
+    })();
+
+    return res;
+  }
