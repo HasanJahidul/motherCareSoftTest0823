@@ -61,11 +61,11 @@ export class AuthService {
 
   async refreshAccessToken(refreshToken: string): Promise<any> {
     try {
-      const payload =  verify(refreshToken,process.env.REFRESH_SECRET);
-      const user = JSON.parse(payload as any);
-      if(typeof user._id!=="string") throw new UnauthorizedException();
+      const user =  verify(refreshToken,process.env.REFRESH_SECRET) as any;
+      if(typeof user.sub!=="string") throw new UnauthorizedException();
       const dbUser = await this.userService.findById(user.sub);
-      return this.generateTokens(dbUser);
+      const payload = { sub: dbUser._id, email: dbUser.email, role: dbUser.role };
+      return this.generateTokens(payload);
     } catch (error) {
       throw new UnauthorizedException()
     }

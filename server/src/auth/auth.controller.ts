@@ -3,6 +3,7 @@ import { AuthService } from './auth.service';
 import { JwtService } from '@nestjs/jwt';
 
 @Controller('auth')
+
 export class AuthController {
   constructor(private readonly authService: AuthService, private readonly jwtService: JwtService) {}
 
@@ -13,6 +14,7 @@ export class AuthController {
 
   @Post('refresh-token')
   async refreshToken(@Body() body: { refresh_token: string }) {
+    console.log(body.refresh_token);
     return this.authService.refreshAccessToken(body.refresh_token);
   }
 }

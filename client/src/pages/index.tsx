@@ -5,7 +5,7 @@ import AddUser from "@/components/AddUser";
 
 export default function Home() {
   return (
-    <div className='flex h-full flex-col justify-center'>
+    <div className='flex h-screen justify-center items-center'>
       {/* <Navbar /> */}
       {/* <Sidebar /> */}
       {/* <UserlistTable /> */}
