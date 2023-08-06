@@ -25,7 +25,7 @@ export class UserService {
   }
 
   async findById(id: string): Promise<User> {
-    return this.userRepository.findOneBy({id: id});
+    return await this.userRepository.findOneBy(new ObjectId(id)); 
   }
 
   async findByColumn(column: string, value: string): Promise<User[]> {
@@ -33,12 +33,17 @@ export class UserService {
   }
 
   async update(id: string, user: Partial<User>): Promise<User> {
-    await this.userRepository.update(id, user);
-    return this.userRepository.findOneBy({id : id});
+    await this.userRepository.update(new ObjectId(id), user);
+    return this.userRepository.findOneBy(new ObjectId(id));
   }
 
   async delete(id: string): Promise<void> {
     await this.userRepository.delete(id);
+  }
+  async findOneByEmail(email: string): Promise<User> {
+    return await this.userRepository.findOne({
+      where: { email: email },
+    });
   }
   async bulkUploadUsers(file: Express.Multer.File): Promise<User[]> {
     if (!file || !file.buffer) {
