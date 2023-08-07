@@ -5,6 +5,7 @@ import { toast } from "react-hot-toast";
 
 const SigninCard = () => {
   const router = useRouter();
+  
 
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
@@ -28,8 +29,8 @@ const SigninCard = () => {
         <div className="px-6 py-4">
           <div className="flex justify-center mx-auto">
             <img
-              className="w-auto h-7 sm:h-8"
-              src="https://merakiui.com/images/logo.svg"
+              className="w-auto h-9 sm:h-10"
+              src="https://addinmothercare.com/wp-content/uploads/2023/06/cropped-AMCL-Logo-wordpress.png"
             />
           </div>
           <h3 className="mt-3 text-xl font-medium text-center text-gray-600 dark:text-gray-200">
@@ -72,17 +73,7 @@ const SigninCard = () => {
             </div>
           </form>
         </div>
-        <div className="flex items-center justify-center py-4 text-center bg-gray-50 dark:bg-gray-700">
-          <span className="text-sm text-gray-600 dark:text-gray-200">
-            Don't have an account?{" "}
-          </span>
-          <a
-            href="#"
-            className="mx-2 text-sm font-bold text-blue-500 dark:text-blue-400 hover:underline"
-          >
-            Register
-          </a>
-        </div>
+        
       </div>
     </>
   );

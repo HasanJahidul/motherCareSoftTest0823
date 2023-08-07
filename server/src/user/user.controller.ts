@@ -1,4 +1,16 @@
-import { Controller, Get, Post, Body, Param, Put, Delete, UseInterceptors, UploadedFile } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Body,
+  Param,
+  Put,
+  Delete,
+  UseInterceptors,
+  UploadedFile,
+  Query,
+  ParseIntPipe,
+} from '@nestjs/common';
 import { UserService } from './user.service';
 import { User } from './user.entity';
 import { FileInterceptor } from '@nestjs/platform-express';
@@ -13,8 +25,11 @@ export class UserController {
   }
 
   @Get()
-  async findAll(): Promise<User[]> {
-    return this.userService.findAll();
+  async findAll(
+    @Query('skip',ParseIntPipe) skip?: number,
+    @Query('take',ParseIntPipe) take?: number,
+  ){
+    return this.userService.findAll(skip,take);
   }
 
   @Get(':id')
@@ -23,12 +38,18 @@ export class UserController {
   }
 
   @Get(':column/:value')
-  async findByColumn(@Param('column') column: string, @Param('value') value: string): Promise<User[]> {
+  async findByColumn(
+    @Param('column') column: string,
+    @Param('value') value: string,
+  ): Promise<User[]> {
     return this.userService.findByColumn(column, value);
   }
 
   @Put(':id')
-  async update(@Param('id') id: string, @Body() user: Partial<User>): Promise<User> {
+  async update(
+    @Param('id') id: string,
+    @Body() user: Partial<User>,
+  ): Promise<User> {
     return this.userService.update(id, user);
   }
 
@@ -39,9 +60,10 @@ export class UserController {
 
   @Post('bulk-upload')
   @UseInterceptors(FileInterceptor('file'))
-  async bulkUploadUsers(@UploadedFile() file: Express.Multer.File): Promise<User[]> {
-    console.log("controller");
+  async bulkUploadUsers(
+    @UploadedFile() file: Express.Multer.File,
+  ): Promise<User[]> {
+    console.log('controller');
     return this.userService.bulkUploadUsers(file);
-
   }
 }
