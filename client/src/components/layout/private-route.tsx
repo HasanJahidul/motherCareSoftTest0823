@@ -8,7 +8,7 @@ import React, { ReactNode } from "react";
 const PrivateRoute = ({children}: { children: ReactNode }) => {
   const { data } = useCurrentUser();
   const router = useRouter();
-  if (!data) router.push("/login");
+  if (data ===null) router.push("/login");
   return (
     <div>
       <Navbar />
