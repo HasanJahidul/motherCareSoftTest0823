@@ -1,20 +1,48 @@
 import useCurrentUser from "@/hooks/useCurrentUser";
 import service from "@/service";
 import { useRouter } from "next/router";
-import { useEffect, useState } from "react";
+import { SetStateAction, useEffect, useState } from "react";
 import { IUserList } from "../User.interface";
 import { toast } from "react-hot-toast";
 import Link from "next/link";
+import {Modal, ModalContent, ModalHeader, ModalBody, ModalFooter, Button, useDisclosure} from "@nextui-org/react";
 
 const UserlistTable = () => {
   const [itemsPerPage, setItemsPerPage] = useState(10);
   const [users, setUsers] = useState<IUserList[]>([]);
   const [totalUsers, setTotalUsers] = useState(0);
-  const [error, setError] = useState(null);
+  const [modal, setModal] = useState(false);
+  const [file, setFile] = useState<File | null>(null);
   const router = useRouter();
+  const {isOpen, onOpen, onOpenChange} = useDisclosure();
   const page = typeof router.query.page === "string" ? +router.query.page : 1;
   const { data } = useCurrentUser();
   const pageCount = Math.ceil(totalUsers / itemsPerPage);
+
+  const handleUpload = (e:any) => {
+    
+    const file =  (document.getElementById("file_input")as any)?.files[0];
+
+     
+        const formData = new FormData();
+        formData.append("file", file);
+        try{
+
+          toast.promise(
+            service.post("users/bulk-upload", formData).then((res) => {
+              console.log(res);
+            }),
+            {
+              loading: "Uploading...",
+              success: "File Uploaded Successfully",
+              error: "File uploading error",
+            }
+            );
+          }catch(err){
+           toast.error(( err as any).message)
+          }
+      
+  }
 
   useEffect(() => {
     service
@@ -41,6 +69,52 @@ const UserlistTable = () => {
 
   return (
     <>
+      {/* modal */}
+
+
+     
+    <div className="flex float-right top-0">
+      <Modal 
+        backdrop="opaque" 
+        isOpen={isOpen} 
+        onOpenChange={onOpenChange}
+        classNames={{
+          backdrop: "bg-gradient-to-t from-zinc-900 to-zinc-900/10 backdrop-opacity-20"
+        }}
+        >
+        <ModalContent>
+          {(onClose) => (
+            <>
+          <form onSubmit={handleUpload}>
+              <ModalHeader className="flex flex-col gap-1">Add User</ModalHeader>
+              <ModalBody>
+
+                    <div>
+                      <label className="block mb-2 text-sm font-medium text-gray-900 dark:text-white" htmlFor="file_input">Upload file</label>
+                      <input className="block w-full text-sm text-gray-900 border border-gray-300 rounded-lg cursor-pointer bg-gray-50 dark:text-gray-400 focus:outline-none dark:bg-gray-700 dark:border-gray-600 dark:placeholder-gray-400" aria-describedby="file_input_help" id="file_input" type="file" />
+                      <p className="mt-1 text-sm text-gray-500 dark:text-gray-300" id="file_input_help"> xlxs, xls or csv </p>
+                    </div>
+
+              </ModalBody>
+              <ModalFooter>
+                <Button color="danger" variant="light" onClick={onClose}>
+                  Close
+                </Button>
+                <Button color="primary" type = "submit">
+                  add
+                </Button>
+
+              </ModalFooter>
+                </form>
+            </>
+          )}
+        </ModalContent>
+      </Modal>
+
+      </div>
+
+          {/* modal */}
+    
       <section className=" px-4 mx-auto">
         <div className="sm:flex sm:items-center sm:justify-between">
           <div>
@@ -79,7 +153,7 @@ const UserlistTable = () => {
             />
           </div>
 
-          <button className="flex items-center justify-center w-1/2 px-5 py-2 text-sm text-gray-700 transition-colors duration-200 bg-white border rounded-lg gap-x-2 sm:w-auto dark:hover:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 dark:text-gray-200 dark:border-gray-700">
+          <button onClick={onOpen} className="flex items-center justify-center w-1/2 px-5 py-2 text-sm text-gray-700 transition-colors duration-200 bg-white border rounded-lg gap-x-2 sm:w-auto dark:hover:bg-gray-800 dark:bg-gray-900 hover:bg-gray-100 dark:text-gray-200 dark:border-gray-700">
             <svg
               width={20}
               height={20}
@@ -104,6 +178,7 @@ const UserlistTable = () => {
             </svg>
             <span>Import</span>
           </button>
+          
         </div>
 
         <div className="flex flex-col mt-6">
